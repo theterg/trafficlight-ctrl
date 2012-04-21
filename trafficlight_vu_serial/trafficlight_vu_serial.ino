@@ -6,12 +6,16 @@
 *  serial messages can also be passed to control the trafficlight remotely
 */
 
-#include <TimerOne.h>
+#include "TimerOne.h"
+
+#define ADC_BUFFLEN    10
 
 int pin_red = 9;
 int pin_yellow = 10;
 int pin_green = 11;
 int pin_led = 13;
+
+int adc_buff[ADC_BUFFLEN];
 
 void setup(){
   //Configure necessary I/O pins
@@ -24,9 +28,14 @@ void setup(){
   digitalWrite(pin_green, HIGH);
   digitalWrite(pin_led, LOW);
   
-  
+  Timer1.initialize(2000);
+  Timer1.attachInterrupt(timerIsr);
 }
 
 void loop(){
   
+}
+
+void timerIsr(){
+  digitalWrite(pin_led, digitalRead(pin_led) ^ 1);
 }
