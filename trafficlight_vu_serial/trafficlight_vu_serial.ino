@@ -8,7 +8,7 @@
 
 #include "TimerOne.h"
 
-#define ADC_BUFFLEN    10
+#define PEAK_PERIOD    1000
 
 int pin_red = 9;
 int pin_yellow = 10;
@@ -16,9 +16,12 @@ int pin_green = 11;
 int pin_led = 13;
 int pin_audio = A0;
 
-int adc_buff[ADC_BUFFLEN];
-int adc_max = 0;
+int adc_value = 0;
+int peak_short = 0;
+int peak_long = 0;
 int peak_counter = 0;
+
+int peak_long_old = 0;
 
 void setup(){
   //Configure necessary I/O pins
@@ -38,17 +41,26 @@ void setup(){
 }
 
 void loop(){
-  if ((millis()%2000) == 0){
-    adc_max = 0;
+  //Print the result of each peak-detected chunk.
+  //(we will average this)
+  if (peak_long != peak_long_old){
+    Serial.println(peak_long);
+    peak_long_old = peak_long;
   }
-  Serial.println(adc_max);
 }
 
 void timerIsr(){
-  //For the moment, only using the first position of the adc buffer
-  adc_buff[0] = analogRead(pin_audio);
-  if (adc_buff[0] > adc_max){
-    adc_max = adc_buff[0];  
+  adc_value = analogRead(pin_audio);
+  //peak_short is *always* updated with the peak value
+  if (adc_value > peak_short){
+    peak_short = adc_value;
+  }
+  //after a certian timeout, reset peak_short
+  //this defines the smaller chunk of time in which we find peaks
+  if (++peak_counter > PEAK_PERIOD){
+    peak_counter = 0;
+    peak_long = peak_short;
+    peak_short = 0;
   }
   digitalWrite(pin_led, digitalRead(pin_led) ^ 1);
 }
