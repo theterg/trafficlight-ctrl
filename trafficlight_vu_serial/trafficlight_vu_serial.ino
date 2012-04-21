@@ -11,14 +11,20 @@
 int pin_red = 9;
 int pin_yellow = 10;
 int pin_green = 11;
+int pin_led = 13;
 
 void setup(){
+  //Configure necessary I/O pins
   pinMode(pin_red, OUTPUT);
   pinMode(pin_yellow, OUTPUT);
   pinMode(pin_green, OUTPUT);
-  digitalWrite(pin_red, LOW);
-  digitalWrite(pin_yellow, OUTPUT);
-  digitalWrite(pin_green, OUTPUT);
+  pinMode(pin_led, OUTPUT);
+  digitalWrite(pin_red, HIGH);
+  digitalWrite(pin_yellow, HIGH);
+  digitalWrite(pin_green, HIGH);
+  digitalWrite(pin_led, LOW);
+  
+  
 }
 
 void loop(){
