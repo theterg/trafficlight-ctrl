@@ -10,8 +10,8 @@ A simple arduino application for using audio and serial to control a traffic lig
 
 ### Serial protocol
 
-* 2 character lines delimited by '\r\n' or just '\n'
-* Possible commands:
-** S(et) a light (turn it on).  Eg: 'sy' will turn on the yellow light
-** C(lear) a light (turn it off).  Eg: 'CG' will turn off the green light
-** Q(uit) will immediately exit serial mode and return to VU meter mode
+Consists of 2 character lines delimited by '\r\n' or just '\n'.  Currently not case sensitive.  The current format is <COMMAND><TARGET>\r\n, where <TARGET> is one of the three lights - 'r', 'y' or 'g'.
+Possible commands:
+* S(et) a light (turn it on).  Eg: 'sy' will turn on the yellow light
+* C(lear) a light (turn it off).  Eg: 'CG' will turn off the green light
+* Q(uit) will immediately exit serial mode and return to VU meter mode
