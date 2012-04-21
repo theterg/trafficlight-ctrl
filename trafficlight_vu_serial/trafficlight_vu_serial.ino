@@ -9,7 +9,7 @@
 #include "TimerOne.h"
 
 #define PEAK_PERIOD    1000
-#define PEAK_BUFFLEN   2
+#define PEAK_BUFFLEN   5
 
 int pin_red = 9;
 int pin_yellow = 10;
@@ -64,12 +64,12 @@ void timerIsr(){
   //this defines the smaller chunk of time in which we find peaks
   if (++peak_counter > PEAK_PERIOD){
     peak_counter = 0;
-    if (peak_long > peak_short){
+    if (peak_short > peak_long){
       peak_long = peak_short;
     } else {
       peak_long = peak_long-((peak_long-peak_short)/4);
     }
-    peak_long = peak_short;
+    //peak_long = peak_short;
     peak_short = 0;
     peak_sum = 0;
     int i;
