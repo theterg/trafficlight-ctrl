@@ -11,7 +11,10 @@
 #define PEAK_PERIOD        1000  //Measured in samples at 500Hz
 #define PEAK_BUFFLEN       5     //number of peak samples to average
 #define TRAFFIC_HOLD       50    //Debounce time for the poor SCRs, in ms
-#define TRAFFIC_HOLD_OFF   60  //OFF time debounce
+#define TRAFFIC_HOLD_OFF   60    //OFF time debounce
+
+#define SERIAL_TIMEOUT     10000  //Duration to wait before resuming VU mode
+#define SERIAL_BUFFLEN     200
 
 int pin_red = 9;
 int pin_yellow = 10;
@@ -33,8 +36,11 @@ int thresh0;
 int thresh1;
 int thresh2;
 unsigned long last_update = 0;
+unsigned long last_serial = 0;
 
 int peak_long_old = 0;
+
+char buff[SERIAL_BUFFLEN];
 
 void setup(){
   //Configure necessary I/O pins
@@ -54,12 +60,65 @@ void setup(){
 }
 
 void loop(){
-  //Debug print of the peak.
-  /*if (peak_avg != peak_long_old){
-    Serial.println(peak_avg);
-    peak_long_old = peak_avg;
-  }*/
+  if (Serial.available()){
+    digitalWrite(pin_red, LOW);
+    digitalWrite(pin_yellow, LOW);
+    digitalWrite(pin_green, LOW);    
+    last_serial = millis();
+    while(millis() - last_serial < SERIAL_TIMEOUT){
+      if (Serial.available()){
+        last_serial = millis();
+        readLine();
+        parseLine();
+      }
+    }
+  }
   doVUMeter();
+}
+
+void parseLine(){
+  Serial.println(buff);
+  switch (buff[0]){
+  case 'S':
+  case 's':
+    digitalWrite(findTarget(buff[1]), HIGH);
+    return;
+  case 'C':
+  case 'c':
+    digitalWrite(findTarget(buff[1]), LOW);
+    return;
+  case 'Q':
+  case 'q':
+    last_serial = 0;
+    return;
+  }
+}
+
+int findTarget(char c){
+  switch(c){
+  case 'R':
+  case 'r':
+    return pin_red;
+  case 'Y':
+  case 'y':
+    return pin_yellow;
+  case 'G':
+  case 'g':
+    return pin_green;
+  }
+  return 14;
+}
+
+void readLine(){
+  memset(buff, '\0', SERIAL_BUFFLEN);
+  int idx = 0;
+  int c;
+  do {
+    c = Serial.read();
+    if ((c > 0) && (c != '\r') && (c != '\n')){
+      buff[idx++] = (char)c;
+    }
+  } while (c != '\n');
 }
 
 void timerIsr(){
@@ -87,9 +146,9 @@ void doVUMeter(){
     return;
   }
   last_value = adc_value;
-  Serial.print(adc_value);
-  Serial.print(" < ");
-  Serial.println(peak_avg);
+  //Serial.print(adc_value);
+  //Serial.print(" < ");
+  //Serial.println(peak_avg);
   last_update = millis();
   if ((adc_value < thresh0)){
     //all off
